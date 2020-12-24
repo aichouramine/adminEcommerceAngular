@@ -1,3 +1,7 @@
+
+<h1>Liste des produits </h1>
+<button class="btn btn-outline btn-sm">Ajouter un produit</button>
+
 <clr-datagrid>
   <clr-dg-column> ID</clr-dg-column>
   <clr-dg-column>Name</clr-dg-column>
@@ -5,13 +9,26 @@
   <clr-dg-column>Price</clr-dg-column>
   <clr-dg-column>Stock</clr-dg-column>
 
-  <clr-dg-row *ngFor="let product of products">
+  <clr-dg-row *clrDgItems="let product of products">
+    <!-- Actions -->
+    <clr-dg-action-overflow>
+      <button class="action-item" >Edit</button>
+      <button class="action-item" >Delete</button>
+    </clr-dg-action-overflow>
+
     <clr-dg-cell>{{product.idProduct}}</clr-dg-cell>
     <clr-dg-cell>{{product.name}}</clr-dg-cell>
     <clr-dg-cell>{{product.description}}</clr-dg-cell>
     <clr-dg-cell>€{{product.price}}</clr-dg-cell>
     <clr-dg-cell>{{product.stock}} In stock</clr-dg-cell>
+
+
   </clr-dg-row>
 
-  <clr-dg-footer>{{products.length}} products</clr-dg-footer>
+  <clr-dg-footer>
+    <clr-dg-pagination #pagination [clrDgPageSize]="10">
+      <clr-dg-page-size [clrPageSizeOptions]="[10,20,50,100]">products per page</clr-dg-page-size>
+      {{pagination.firstItem + 1}} - {{pagination.lastItem + 1}} of {{pagination.totalItems}} products
+    </clr-dg-pagination>
+  </clr-dg-footer>
 </clr-datagrid>
