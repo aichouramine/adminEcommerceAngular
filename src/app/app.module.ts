@@ -1,3 +1,4 @@
+import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
@@ -23,6 +24,7 @@ import { ShowProductComponent } from './components/show-product/show-product.com
     ClarityModule,
     BrowserAnimationsModule,
     HttpClientModule,
+    ReactiveFormsModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
