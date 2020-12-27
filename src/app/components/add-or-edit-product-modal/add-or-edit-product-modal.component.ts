@@ -1,8 +1,9 @@
+import { ProductsService } from './../../services/products.service';
+import { Category } from './../../models/category';
 import { CategoriesService } from './../../services/categories.service';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Component, Input, OnDestroy, OnInit, Output, EventEmitter } from '@angular/core';
 import { Product } from 'src/app/models/product';
-import { Category } from 'src/app/models/category';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -18,8 +19,9 @@ export class AddOrEditProductModalComponent implements OnInit, OnDestroy {
   categories: Category[];
   categorySub: Subscription;
   idCategory = 1;
+  file: File;
 
-  constructor(private fb: FormBuilder, private categoriesService: CategoriesService) {
+  constructor(private fb: FormBuilder, private categoriesService: CategoriesService,private productService: ProductsService) {
     this.productForm = fb.group({
       productInfos: fb.group({
         name: ['',Validators.required],
@@ -28,20 +30,24 @@ export class AddOrEditProductModalComponent implements OnInit, OnDestroy {
         stock: ['',Validators.required]
       }),
       illustration: fb.group({
-        image: ['',Validators.required]
+        image: [null,Validators.required]
       })
     })
    }
 
    selectCategory(id: number){
     this.idCategory = id;
-   }
+  }
+
 
   get isProductInfosInvalid(): boolean{
     return this.productForm.get('productInfos').invalid;
   }
 
   get isIllustrationInvalid(): boolean{
+    if(this.product){
+      return false;
+    }
     return this.productForm.get('illustration').invalid;
   }
 
@@ -56,15 +62,20 @@ export class AddOrEditProductModalComponent implements OnInit, OnDestroy {
       ...this.productForm.get('illustration').value,
       category: this.idCategory
     }
-
-
-    this.finish.emit(product);
+    if(this.file){
+      product.image = this.file.name;
+    }
+    this.finish.emit({product: product, file: this.file ? this.file : null});
     this.close();
   }
 
   close(){
     this.productForm.reset();
     this.idCategory = 1;
+  }
+
+  detecteFiles(event){
+    this.file = event.target.files[0];
   }
 
 
@@ -76,6 +87,7 @@ export class AddOrEditProductModalComponent implements OnInit, OnDestroy {
       }
     )
   }
+
 
   ngOnDestroy(): void{
     this.categorySub.unsubscribe();

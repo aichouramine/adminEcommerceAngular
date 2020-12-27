@@ -65,7 +65,7 @@
       <div formGroupName="illustration">
         <clr-input-container>
           <label for="image">Product image</label>
-          <input id="image" clrInput type="file" name="image" formControlName="image" />
+          <input id="image" (change)="detecteFiles($event)" accept="image/*" clrInput type="file" name="image" formControlName="image" />
         </clr-input-container>
       </div>
 
