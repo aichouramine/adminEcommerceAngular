@@ -8,9 +8,8 @@ import { environment } from 'src/environments/environment';
 })
 export class FileUploadService {
 
-  private baseUrlUpload = `${environment.api+'uploadImage.php'+'?API_KEY='+environment.api_key}`;
+  private baseUrl = `${environment.api+'image'+'?API_KEY='+environment.api_key}`;
 
-  private BaseUrlDelete = `${environment.api+'deleteImage.php'+'?API_KEY='+environment.api_key}`;
 
   constructor(private http: HttpClient) { }
 
@@ -18,16 +17,15 @@ export class FileUploadService {
     let formData: any = new FormData();
     formData.append("image", file);
 
-    return this.http.post(this.baseUrlUpload, formData,{
+    return this.http.post(this.baseUrl, formData,{
       reportProgress: true,
       observe: 'events'
     })
   }
 
   deleteImage(name: string): Observable<any>{
-    let formData: any = new FormData();
-    formData.append("name", name);
-    return this.http.delete(this.BaseUrlDelete,formData);
+    const url = this.baseUrl+"&name="+name;
+    return this.http.delete(url);
   }
 
 

@@ -1,8 +1,10 @@
 import { HttpEvent, HttpEventType } from '@angular/common/http';
 import { Component, Input, OnInit } from '@angular/core';
 import { Product } from 'src/app/models/product';
+import { Response } from 'src/app/models/response';
 import { FileUploadService } from 'src/app/services/file-upload.service';
 import { ProductsService } from 'src/app/services/products.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-show-product',
@@ -16,6 +18,7 @@ export class ShowProductComponent implements OnInit {
   selectedProduct: Product;
   file: File;
   progress = 0;
+  baseUrlImage = `${environment.api_image}`;
 
   constructor(private productService: ProductsService,private fileService: FileUploadService) { }
 
@@ -33,6 +36,7 @@ export class ShowProductComponent implements OnInit {
   }
 
   addProduct():void {
+    this.selectedProduct = undefined;
     this.productModalOpen = true;
   }
 
@@ -43,41 +47,109 @@ export class ShowProductComponent implements OnInit {
       console.log(product);
       if(this.selectedProduct){
         //Edit Product
+        product.idProduct = this.selectedProduct.idProduct;
+        this.editProductToServer(product);
       }else{
         //Add Product
-        this.productService.addProduct(product).subscribe(
-          (data)=>{
-            if(data.status == 200){
-              // Update frontend
-              if(this.file){
-                this.fileService.uploadImage(this.file).subscribe(
-                  (event: HttpEvent<any>)=>{
-                    switch (event.type) {
-                      case HttpEventType.Sent:
-                        console.log("Requete envoyée avec succès");
-                        break;
-                      case HttpEventType.UploadProgress:
-                        this.progress = Math.round(event.loaded / event.total * 100);
-                        break;
-                      case HttpEventType.Response:
-                        console.log(event.body);
-                        setTimeout(() => {
-                          this.progress = 0;
-                        }, 1500);
-
-                    }
-                  }
-                )
-              }
-              product.idProduct = data.args.lastInsertId;
-              this.products.push(product);
-            }
-
-          }
-        )
+       this.addProductToServer(product);
       }
     }
     this.productModalOpen = false;
+  }
+
+
+  uploadImage(event){
+    return new Promise(
+      (resolve)=>{
+        switch (event.type) {
+          case HttpEventType.Sent:
+            console.log("Requete envoyée avec succès");
+            break;
+          case HttpEventType.UploadProgress:
+            this.progress = Math.round(event.loaded / event.total * 100);
+            if(this.progress == 100){
+              resolve(true);
+            }
+            break;
+          case HttpEventType.Response:
+            console.log(event.body);
+            setTimeout(() => {
+              this.progress = 0;
+            }, 1500);
+
+        }
+      }
+    )
+  }
+
+  addProductToServer(product){
+    this.productService.addProduct(product).subscribe(
+      (data: Response)=>{
+        if(data.status == 200){
+          // Update frontend
+          if(this.file){
+            this.fileService.uploadImage(this.file).subscribe(
+              (event: HttpEvent<any>)=>{
+                this.uploadImage(event).then(
+                  ()=>{
+                    product.idProduct = data.args.lastInsertId;
+                    product.Category = product.category;
+                    this.products.push(product);
+                  }
+                );
+              }
+            )
+          }
+
+        }
+
+      }
+    )
+  }
+
+  editProductToServer(product){
+    this.productService.editProduct(product).subscribe(
+      (data: Response)=>{
+        if(data.status == 200){
+          if(this.file){
+            this.fileService.uploadImage(this.file).subscribe(
+              (event: HttpEvent<any>)=>{
+                this.uploadImage(event).then(
+                  ()=>{
+                     // update frontend
+                     this.updateProducts(product);
+                  }
+                );
+              }
+            );
+            this.fileService.deleteImage(product.oldImage).subscribe(
+              (data: Response)=>{
+                console.log(data);
+              }
+            );
+          }else{
+             // update frontend
+              this.updateProducts(product);
+          }
+
+
+        }else{
+          console.log(data.message);
+
+        }
+      }
+    )
+  }
+
+  updateProducts(product){
+     // update frontend
+     const index = this.products.findIndex(p =>p.idProduct == product.idProduct);
+     product.Category = product.category;
+     this.products = [
+       ...this.products.slice(0,index),
+       product,
+       ...this.products.slice(index+1)
+     ]
   }
 
 }
