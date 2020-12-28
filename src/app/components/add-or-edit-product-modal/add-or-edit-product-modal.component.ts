@@ -61,7 +61,11 @@ export class AddOrEditProductModalComponent implements OnInit, OnChanges, OnDest
       ...this.productForm.get('productInfos').value,
       ...this.productForm.get('illustration').value,
       category: this.idCategory,
-      oldImage: this.product.oldImage
+      oldImage: null
+    }
+
+    if(this.product){
+      product.oldImage = this.product.oldImage;
     }
 
     if(this.file){
